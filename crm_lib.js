@@ -1,8 +1,8 @@
 (function(){
-if(window.__crm&&window.__crm.v===8){return}
+if(window.__crm&&window.__crm.v===10){return}
 var S=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
 var A=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
-var C={v:8};
+var C={v:10};
 C.ls=function(pg,v){try{if(v===undefined){var s=localStorage.getItem('__pg'+pg);return s?JSON.parse(s):null}localStorage.setItem('__pg'+pg,JSON.stringify(v));return 1}catch(e){return null}};
 C.lslist=function(){var o=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('__pg')===0){o.push(parseInt(k.slice(4),10))}}}catch(e){}return o.sort(function(a,b){return a-b})};
 C.active=function(){var li=document.querySelector('li.ant-pagination-item-active');return li?parseInt(li.textContent.trim(),10):0};
@@ -10,6 +10,7 @@ C.rowEls=function(){return A('tr.ant4-table-row-level-0')};
 C.spin=function(){return A('.ant-spin-spinning').length>0};
 C.dtext=function(){var ds=A('.ant-drawer,.ant4-drawer'),v='';for(var i=0;i<ds.length;i++){var s=getComputedStyle(ds[i]);if(s.display!=='none'&&s.visibility!=='hidden'){v+=ds[i].innerText.replace(/\s+/g,' ')}}return v};
 C.close=function(){var cb=document.querySelector('.ant-drawer-open .ant-drawer-close,.ant4-drawer-open .ant4-drawer-close');if(cb){cb.click();return 1}return 0};
+C.purge=function(){var n=0;try{var ds=A('.ant-drawer,.ant4-drawer');for(var i=0;i<ds.length;i++){var d=ds[i];if(d.classList&&(d.classList.contains('ant-drawer-open')||d.classList.contains('ant4-drawer-open'))){continue}if(d.parentNode){d.parentNode.removeChild(d);n++}}if(!document.querySelector('.ant-drawer-open,.ant4-drawer-open')){var ms=A('.ant-drawer-mask,.ant4-drawer-mask');for(var j=0;j<ms.length;j++){if(ms[j].parentNode){ms[j].parentNode.removeChild(ms[j]);n++}}}}catch(e){}return n};
 C.seg=function(t,a,b){var i=t.indexOf(a);if(i<0){return ''}var j=t.indexOf(b,i+a.length);return (j<0?t.slice(i+a.length,i+a.length+180):t.slice(i+a.length,j)).trim()};
 C.parse=function(t){return {c:C.seg(t,'公司名称','客户标签'),ct:C.seg(t,'客户类型','电话'),tel:C.seg(t,'电话','手机'),m:C.seg(t,'手机','Hot联系方式'),hot:C.seg(t,'Hot联系方式','微信号'),rg:C.seg(t,'地区','地址'),ad:C.seg(t,'地址','跟进状态'),ch:C.seg(t,'负责人：','修改')}};
 C.viewBtn=function(tr){var b=A('a,button',tr);for(var i=0;i<b.length;i++){if(b[i].textContent.trim()==='查看'){return b[i]}}return null};
@@ -29,16 +30,16 @@ if(!vb){await S(350);tr=(C.rowEls()[meta.i]||tr);continue}
 vb.click();
 t=await C.waitDrawer(meta.n);
 if(t){break}
-C.close();await S(450);
+C.close();await S(450);C.purge();
 }
 if(!t){r.err='dt';return r}
 var p=C.parse(t);
 if(p.c&&meta.n&&p.c.slice(0,4)!==meta.n.slice(0,4)){r.err='mm'}
 r.c=p.c||r.c;r.ct=p.ct||'--';r.tel=p.tel||r.tl||'--';r.m=p.m||'';r.hot=p.hot||r.h||'--';r.rg=p.rg||'';r.ad=p.ad||'';r.ch=p.ch||r.ch;
-C.close();await S(220);
+C.close();await S(220);C.purge();
 if(r.h&&r.h.indexOf('@')>=0){
 var hb=C.hotBtn(tr);
-if(hb){hb.click();var ht=await C.waitHot();if(ht){var nums=(ht.match(/1[0-9]{10}/g)||[]).concat(ht.match(/0[0-9]{2,3}-?[0-9]{7,8}/g)||[]);var u=[];for(var i=0;i<nums.length;i++){if(u.indexOf(nums[i])<0){u.push(nums[i])}}r.hn=u.join('；')}C.close();await S(220)}
+if(hb){hb.click();var ht=await C.waitHot();if(ht){var nums=(ht.match(/1[0-9]{10}/g)||[]).concat(ht.match(/0[0-9]{2,3}-?[0-9]{7,8}/g)||[]);var u=[];for(var i=0;i<nums.length;i++){if(u.indexOf(nums[i])<0){u.push(nums[i])}}r.hn=u.join('；')}C.close();await S(220);C.purge()}
 }
 return r;
 };
@@ -53,6 +54,7 @@ var p=cur;
 if(!C.jp()){break}
 for(var k=0;k<20;k++){await S(250);var n=C.active();if(n&&n!==p){cur=n;break}}
 if(cur===p){break}
+await S(450+Math.random()*450)
 }
 var w=await C.walk(t);
 if(w.ok){return w}
@@ -82,13 +84,9 @@ J.cur=pg;J.st='nav';
 var w=await C.ride(pg);
 if(!w.ok){J.log.push(pg+':nf@'+w.cur+':'+w.why);J.st='fail';J.run=0;return J}
 if(prev){
-var ok=await C.settle(prev,9000);
-if(!ok){
-J.log.push(pg+':rf');
-var rf=await C.refetch(pg);
-ok=(rf&&await C.settle(prev,6000))?1:0;
+var ok=await C.settle(prev,30000);
+if(!ok){ok=await C.settle(prev,15000)}
 if(!ok){J.log.push(pg+':stale');J.st='stale';J.run=0;return J}
-}
 }
 prev=C.keysStr();
 J.st='read';
