@@ -27,8 +27,10 @@ def clean(v):
 def load():
     rows = []
     seen = set()
-    files = glob.glob(os.path.join(CH, 'p*.json'))
-    files.sort(key=lambda x: int(re.search(r'p(\d+)\.json', x).group(1)))
+    files = sorted(glob.glob(os.path.join(CH, 'p*.json')),
+                   key=lambda x: int(re.search(r'p(\d+)\.json', x).group(1)))
+    files += sorted(glob.glob('/workspace/extra/p*.json'),
+                    key=lambda x: int(re.search(r'p(\d+)\.json', x).group(1)))
     dup = 0
     for f in files:
         page = int(re.search(r'p(\d+)\.json', f).group(1))
@@ -162,7 +164,7 @@ def build_xlsx(rows, dup, nfiles):
     s.column_dimensions['B'].width = 52
     s.column_dimensions['C'].width = 34
 
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量.xlsx')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v2.xlsx')
     wb.save(path)
     return path
 
@@ -184,7 +186,7 @@ def build_md(rows, dup, nfiles):
     lines.append('|' + '|'.join(['---'] * len(COLS)) + '|')
     for r in rows:
         lines.append('| ' + ' | '.join(esc(str(r[k])) for k, _ in COLS) + ' |')
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量.md')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v2.md')
     with open(path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines) + '\n')
     return path
@@ -230,7 +232,7 @@ def build_pdf(rows, dup, nfiles):
         canv.line(LM, 11 * mm, W - RM, 11 * mm)
         canv.restoreState()
 
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量.pdf')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v2.pdf')
     doc = BaseDocTemplate(path, pagesize=(W, H), leftMargin=LM, rightMargin=RM,
                           topMargin=TM, bottomMargin=BM,
                           title=head, author='TRAE')
