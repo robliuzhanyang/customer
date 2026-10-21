@@ -164,7 +164,7 @@ def build_xlsx(rows, dup, nfiles):
     s.column_dimensions['B'].width = 52
     s.column_dimensions['C'].width = 34
 
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v2.xlsx')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v3.xlsx')
     wb.save(path)
     return path
 
@@ -186,7 +186,7 @@ def build_md(rows, dup, nfiles):
     lines.append('|' + '|'.join(['---'] * len(COLS)) + '|')
     for r in rows:
         lines.append('| ' + ' | '.join(esc(str(r[k])) for k, _ in COLS) + ' |')
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v2.md')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v3.md')
     with open(path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines) + '\n')
     return path
@@ -232,7 +232,7 @@ def build_pdf(rows, dup, nfiles):
         canv.line(LM, 11 * mm, W - RM, 11 * mm)
         canv.restoreState()
 
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v2.pdf')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_全量_v3.pdf')
     doc = BaseDocTemplate(path, pagesize=(W, H), leftMargin=LM, rightMargin=RM,
                           topMargin=TM, bottomMargin=BM,
                           title=head, author='TRAE')
