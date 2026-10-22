@@ -34,6 +34,8 @@ def load_full():
     for f in files:
         with open(f, encoding='utf-8') as fh:
             data = json.load(fh)
+        if isinstance(data, dict):
+            data = [data]
         for rec in data:
             if not isinstance(rec, dict):
                 continue
@@ -57,6 +59,23 @@ def load_full():
                 'st': clean(rec.get('st') or rec.get('status')),
                 'k': k,
             }
+    for f in glob.glob('/workspace/fill2/*.json'):
+        with open(f, encoding='utf-8') as fh:
+            rec = json.load(fh)
+        if not isinstance(rec, dict):
+            continue
+        k = clean(rec.get('k'))
+        if not k or k in seen:
+            if k:
+                dup += 1
+            continue
+        seen[k] = {
+            'n': clean(rec.get('n')), 'c': clean(rec.get('c')), 'l': clean(rec.get('l')),
+            'ch': clean(rec.get('ch')), 'm': clean(rec.get('m')),
+            'hot': clean(rec.get('hot') or rec.get('hn')), 'tel': clean(rec.get('tel')),
+            'rg': clean(rec.get('rg')), 'ad': clean(rec.get('ad')),
+            'h': clean(rec.get('h')), 'st': clean(rec.get('st')), 'k': k,
+        }
     return list(seen.values()), dup
 
 
@@ -140,7 +159,7 @@ def build_xlsx(rows, dup, nexp):
 
     s = wb.create_sheet('采集概览')
     A = '客户通讯录!'
-    s['A1'] = '探迹CRM 我的客户 · 客户通讯录（终版）'
+    s['A1'] = '探迹CRM 我的客户 · 客户通讯录（终版+）'
     s['A1'].font = Font(name=FONT, bold=True, size=14, color='1F4E79')
     s.merge_cells('A1:C1')
     s['A2'], s['B2'], s['C2'] = '指标', '数值', '说明'
@@ -187,7 +206,7 @@ def build_xlsx(rows, dup, nexp):
     s.column_dimensions['B'].width = 60
     s.column_dimensions['C'].width = 34
 
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_终版.xlsx')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_终版+.xlsx')
     wb.save(path)
     return path
 
@@ -197,7 +216,7 @@ def esc(s):
 
 
 def build_md(rows, dup, nexp):
-    lines = ['# 探迹CRM 客户通讯录（终版）', '']
+    lines = ['# 探迹CRM 客户通讯录（终版+）', '']
     lines.append('- 记录条数：%d 条（按客户编号去重）' % len(rows))
     lines.append('- 数据来源：页面逐条点击采集（抽屉字段）+ CRM 导出列表全量花名册')
     lines.append('- 备注：标有「导出补充」的行因平台联系方式保护，不含手机/地址/地区')
@@ -206,7 +225,7 @@ def build_md(rows, dup, nexp):
     lines.append('|' + '|'.join(['---'] * len(COLS)) + '|')
     for r in rows:
         lines.append('| ' + ' | '.join(esc(str(r[k])) for k, _ in COLS) + ' |')
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_终版.md')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_终版+.md')
     with open(path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines) + '\n')
     return path
@@ -234,7 +253,7 @@ def build_pdf(rows, dup, nexp):
     title = ParagraphStyle('t', fontName='CN', fontSize=14, leading=20, textColor=colors.HexColor('#1F4E79'))
     sub = ParagraphStyle('s', fontName='CN', fontSize=7.5, leading=11, textColor=colors.HexColor('#6B7280'))
 
-    head = '探迹CRM 客户通讯录（终版）'
+    head = '探迹CRM 客户通讯录（终版+）'
     subtext = ('记录 %d 条（按客户编号去重）｜页面逐条点击采集 + CRM 导出列表全量花名册｜'
                '备注「导出补充」的行因联系方式保护不含手机/地址/地区' % len(rows))
 
@@ -251,7 +270,7 @@ def build_pdf(rows, dup, nexp):
         canv.line(LM, 10 * mm, W - RM, 10 * mm)
         canv.restoreState()
 
-    path = os.path.join(OUT, '探迹CRM_客户通讯录_终版.pdf')
+    path = os.path.join(OUT, '探迹CRM_客户通讯录_终版+.pdf')
     doc = BaseDocTemplate(path, pagesize=(W, H), leftMargin=LM, rightMargin=RM,
                           topMargin=TM, bottomMargin=BM, title=head, author='TRAE')
     frame = Frame(LM, BM, W - LM - RM, H - TM - BM, id='f', showBoundary=0)
